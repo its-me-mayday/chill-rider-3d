@@ -3,46 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chill Rider - Lofi Bicycle Journey</title>
+    <title>Chill Rider 3D - Sunset Journey</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
     <style>
-      body { margin: 0; overflow: hidden; background: #ffccaa; font-family: 'Outfit', sans-serif; }
+      body { margin: 0; overflow: hidden; background: #ffaa88; font-family: 'Outfit', sans-serif; }
       #app { width: 100vw; height: 100vh; }
-      
-      #ui {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        pointer-events: none;
-        display: flex; flex-direction: column; justify-content: space-between;
-        padding: 50px; box-sizing: border-box;
-        color: #fff;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      }
-
+      #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 40px; box-sizing: border-box; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 10; }
       .top-section { display: flex; justify-content: space-between; align-items: flex-start; }
-      .title { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-style: italic; }
-      .status { text-align: right; font-size: 0.9rem; opacity: 0.8; letter-spacing: 2px; }
-
+      .title { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-style: italic; }
+      #lofi-radio { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(15px); padding: 12px 25px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.4); font-size: 0.9rem; pointer-events: auto; cursor: pointer; transition: 0.3s; color: white; font-weight: 600; }
+      #lofi-radio:hover { background: rgba(255, 255, 255, 0.35); transform: translateX(-50%) scale(1.05); }
       .bottom-section { display: flex; justify-content: space-between; align-items: flex-end; }
-      .controls-hint { font-size: 0.8rem; opacity: 0.6; }
-      .speed-meter { font-size: 3rem; font-weight: 600; }
-      .speed-unit { font-size: 1rem; opacity: 0.7; }
-
-      #lofi-radio {
-        position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-        background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
-        padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.3);
-        font-size: 0.9rem; pointer-events: auto; cursor: pointer; transition: 0.3s;
-      }
-      #lofi-radio:hover { background: rgba(255, 255, 255, 0.25); }
-
-      .overlay {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle, transparent 40%, rgba(255, 100, 100, 0.1));
-        pointer-events: none;
-      }
+      .speed-meter { font-size: 3.5rem; font-weight: 600; }
+      .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255, 150, 100, 0.1), rgba(255, 50, 50, 0.05)); pointer-events: none; }
     </style>
   </head>
   <body>
@@ -51,18 +26,15 @@
     <div id="ui">
       <div class="top-section">
         <div class="title">Chill Rider</div>
-        <div class="status">SUNSET BOULEVARD<br>NEAR ETERNITY</div>
+        <div style="text-align: right; opacity: 0.8;">LOFI VIBES ON WHEELS</div>
       </div>
-
-      <div id="lofi-radio">🎵 RADIO: CHILL BEATS (OFF)</div>
-
+      <button id="lofi-radio">🎵 RADIO: CHILL BEATS (OFF)</button>
       <div class="bottom-section">
-        <div class="controls-hint">W/S TO PEDAL • A/D TO STEER • SPACE TO BRAKE</div>
-        <div class="speed-info">
-          <span class="speed-meter" id="speed">0</span> <span class="speed-unit">KM/H</span>
-        </div>
+        <div style="opacity: 0.6; font-size: 0.8rem;">[W/S] PEDAL • [A/D] STEER • [SPACE] BRAKE</div>
+        <div><span class="speed-meter" id="speed">0</span> <small>KM/H</small></div>
       </div>
     </div>
-    <script type="module" src="/main.js"></script>
+    <!-- FORZIAMO IL CARICAMENTO DI MAIN.JS E NON MAIN.TSX -->
+    <script type="module" src="/main.js?v=final"></script>
   </body>
 </html>
