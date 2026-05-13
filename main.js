@@ -88,14 +88,14 @@ function animate() {
   const delta = clock.getDelta();
   bike.update(delta);
 
-  // CAMERA FOLLOW (Tightened)
+  // CAMERA FOLLOW (Low & Deep)
   const bikePos = bike.mesh.position;
-  // Offset più vicino (z: -10 invece di -12) e più reattivo (0.1 invece di 0.06)
-  const cameraOffset = new THREE.Vector3(0, 4.5, -9).applyQuaternion(bike.mesh.quaternion);
+  // Altezza abbassata (2.5) e distanza aumentata (-11)
+  const cameraOffset = new THREE.Vector3(0, 2.5, -11).applyQuaternion(bike.mesh.quaternion);
   const targetCamPos = bikePos.clone().add(cameraOffset);
   camera.position.lerp(targetCamPos, 0.15);
 
-  const lookOffset = new THREE.Vector3(0, 2, 8).applyQuaternion(bike.mesh.quaternion);
+  const lookOffset = new THREE.Vector3(0, 2, 6).applyQuaternion(bike.mesh.quaternion);
   const lookTarget = bikePos.clone().add(lookOffset);
   camera.lookAt(lookTarget);
 

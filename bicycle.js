@@ -17,11 +17,10 @@ export class Bicycle {
     this.buildBicycle();
     this.buildRider();
     
-    // FISICA SU BINARI (Valori calibrati per progresso 0-1)
     this.progress = 0;
     this.laneOffset = 0; 
     this.speed = 0;
-    this.maxSpeed = 0.05; // Velocità massima bilanciata
+    this.maxSpeed = 0.05;
     this.acceleration = 0.01; 
     this.friction = 0.96;
     
@@ -33,21 +32,31 @@ export class Bicycle {
   }
 
   buildBicycle() {
-    const createWheel = (pos) => {
-      const group = new THREE.Group();
-      group.add(new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.06, 12, 24), this.tireMat));
-      for (let i = 0; i < 8; i++) {
-        const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.6), this.frameMat);
-        spoke.rotation.z = (i / 8) * Math.PI;
-        group.add(spoke);
-      }
-      group.position.set(pos.x, pos.y, pos.z);
-      return group;
-    };
-    this.wheelF = createWheel({ x: 0, y: 0.8, z: 1.4 });
-    this.wheelB = createWheel({ x: 0, y: 0.8, z: -1.4 });
-    this.mesh.add(this.wheelF); this.mesh.add(this.wheelB);
+    // Ruota Posteriore (Fissa al telaio)
+    this.wheelB = this.createWheel();
+    this.wheelB.position.set(0, 0.8, -1.4);
+    this.mesh.add(this.wheelB);
 
+    // Gruppo Sterzo (Manubrio + Forcella + Ruota Anteriore)
+    this.steeringGroup = new THREE.Group();
+    this.steeringGroup.position.set(0, 0, 1.4);
+    this.mesh.add(this.steeringGroup);
+
+    this.wheelF = this.createWheel();
+    this.wheelF.position.set(0, 0.8, 0);
+    this.steeringGroup.add(this.wheelF);
+
+    const forkL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.6), this.frameMat);
+    forkL.position.set(-0.15, 1.2, 0); forkL.rotation.x = -0.2;
+    this.steeringGroup.add(forkL);
+    const forkR = forkL.clone(); forkR.position.x = 0.15;
+    this.steeringGroup.add(forkR);
+
+    this.handlebars = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.4), this.frameMat);
+    this.handlebars.rotation.z = Math.PI/2; this.handlebars.position.set(0, 2.3, 0);
+    this.steeringGroup.add(this.handlebars);
+
+    // Telaio
     const frame = new THREE.Group();
     const pipe = (h, rot, pos) => {
       const m = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, h), this.frameMat);
@@ -65,10 +74,17 @@ export class Bicycle {
     const pL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.15), this.frameMat);
     pL.position.x = -0.4; this.pedals.add(pL);
     const pR = pL.clone(); pR.position.x = 0.4; this.pedals.add(pR);
+  }
 
-    const handlebars = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.4), this.frameMat);
-    handlebars.rotation.z = Math.PI/2; handlebars.position.set(0, 2.3, 0.9);
-    this.mesh.add(handlebars);
+  createWheel() {
+    const group = new THREE.Group();
+    group.add(new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.06, 12, 24), this.tireMat));
+    for (let i = 0; i < 8; i++) {
+      const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.6), this.frameMat);
+      spoke.rotation.z = (i / 8) * Math.PI;
+      group.add(spoke);
+    }
+    return group;
   }
 
   buildRider() {
@@ -102,41 +118,36 @@ export class Bicycle {
   update(delta) {
     if (!this.curve) return;
 
-    // Input & Accelerazione (Normalizzata per delta)
     if (this.keys.forward) this.speed += this.acceleration * delta;
     if (this.keys.backward) this.speed -= this.acceleration * 0.5 * delta;
     if (this.keys.space) this.speed *= 0.9;
-    
     this.speed *= this.friction;
     this.speed = THREE.MathUtils.clamp(this.speed, -0.005, this.maxSpeed);
 
-    // Aggiornamento progresso (0.01 è circa un giro ogni 100 secondi a maxSpeed)
     this.progress += this.speed * delta;
     if (this.progress > 1) this.progress -= 1;
     if (this.progress < 0) this.progress += 1;
 
-    // Spostamento laterale
     const targetLane = (this.keys.left ? 3.5 : 0) + (this.keys.right ? -3.5 : 0);
     this.laneOffset = THREE.MathUtils.lerp(this.laneOffset, targetLane, 2 * delta);
 
-    // Posizionamento
+    // ANIMAZIONE STERZO (Ruota manubrio e forcella)
+    const steerTarget = (this.keys.left ? 0.4 : 0) + (this.keys.right ? -0.4 : 0);
+    this.steeringGroup.rotation.y = THREE.MathUtils.lerp(this.steeringGroup.rotation.y, steerTarget, 0.1);
+
+    // POSIZIONAMENTO
     const pos = this.curve.getPointAt(this.progress);
     const tangent = this.curve.getTangentAt(this.progress).normalize();
     const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
-    this.mesh.position.set(
-      pos.x + normal.x * this.laneOffset,
-      0.1,
-      pos.z + normal.z * this.laneOffset
-    );
-
+    this.mesh.position.set(pos.x + normal.x * this.laneOffset, 0.1, pos.z + normal.z * this.laneOffset);
     this.mesh.lookAt(pos.clone().add(tangent));
     
-    // Inclinazione estetica
+    // Inclinazione
     const turnIntensity = (this.keys.left ? 1 : 0) - (this.keys.right ? 1 : 0);
     this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, -turnIntensity * 0.3, 0.1);
 
-    // Animazioni
+    // Animazioni Ruote e Pedali
     const animSpeed = this.speed * 200;
     this.wheelF.rotation.x += animSpeed;
     this.wheelB.rotation.x += animSpeed;
