@@ -17,15 +17,14 @@ export class Bicycle {
     this.buildBicycle();
     this.buildRider();
     
-    // FISICA SU BINARI
-    this.progress = 0; // Da 0 a 1 lungo la curva
-    this.laneOffset = 0; // Spostamento laterale (-4 a 4)
+    // FISICA SU BINARI (Valori calibrati per progresso 0-1)
+    this.progress = 0;
+    this.laneOffset = 0; 
     this.speed = 0;
-    this.maxSpeed = 0.02; // Velocità in termini di progresso curva
-    this.acceleration = 0.0002;
-    this.friction = 0.98;
-    this.laneSpeed = 5; // Velocità di cambio corsia
-
+    this.maxSpeed = 0.05; // Velocità massima bilanciata
+    this.acceleration = 0.01; 
+    this.friction = 0.96;
+    
     this.scene.add(this.mesh);
 
     this.keys = { forward: false, backward: false, left: false, right: false, space: false };
@@ -103,51 +102,50 @@ export class Bicycle {
   update(delta) {
     if (!this.curve) return;
 
-    // ACCELERAZIONE LUNGO IL PROGRESSO
-    if (this.keys.forward) this.speed += this.acceleration * delta * 60;
-    if (this.keys.backward) this.speed -= this.acceleration * 0.5 * delta * 60;
+    // Input & Accelerazione (Normalizzata per delta)
+    if (this.keys.forward) this.speed += this.acceleration * delta;
+    if (this.keys.backward) this.speed -= this.acceleration * 0.5 * delta;
     if (this.keys.space) this.speed *= 0.9;
     
     this.speed *= this.friction;
-    this.speed = THREE.MathUtils.clamp(this.speed, -0.002, this.maxSpeed);
+    this.speed = THREE.MathUtils.clamp(this.speed, -0.005, this.maxSpeed);
 
-    this.progress += this.speed * delta * 60;
+    // Aggiornamento progresso (0.01 è circa un giro ogni 100 secondi a maxSpeed)
+    this.progress += this.speed * delta;
     if (this.progress > 1) this.progress -= 1;
     if (this.progress < 0) this.progress += 1;
 
-    // SPOSTAMENTO LATERALE (LANE OFFSET)
-    const targetLane = (this.keys.left ? 4 : 0) + (this.keys.right ? -4 : 0);
-    this.laneOffset = THREE.MathUtils.lerp(this.laneOffset, targetLane, 0.05 * delta * 60);
+    // Spostamento laterale
+    const targetLane = (this.keys.left ? 3.5 : 0) + (this.keys.right ? -3.5 : 0);
+    this.laneOffset = THREE.MathUtils.lerp(this.laneOffset, targetLane, 2 * delta);
 
-    // POSIZIONAMENTO SULLA CURVA
+    // Posizionamento
     const pos = this.curve.getPointAt(this.progress);
     const tangent = this.curve.getTangentAt(this.progress).normalize();
     const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
-    // Applichiamo la posizione + l'offset laterale
     this.mesh.position.set(
       pos.x + normal.x * this.laneOffset,
       0.1,
       pos.z + normal.z * this.laneOffset
     );
 
-    // ORIENTAMENTO
     this.mesh.lookAt(pos.clone().add(tangent));
     
-    // Inclinazione estetica basata su curva e sterzata
+    // Inclinazione estetica
     const turnIntensity = (this.keys.left ? 1 : 0) - (this.keys.right ? 1 : 0);
-    this.mesh.rotation.z = -turnIntensity * 0.2 - (this.speed * 50 * Math.sin(this.progress * Math.PI * 4) * 0.1);
+    this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, -turnIntensity * 0.3, 0.1);
 
-    // ANIMAZIONI
-    const animSpeed = this.speed * 5000 * delta;
+    // Animazioni
+    const animSpeed = this.speed * 200;
     this.wheelF.rotation.x += animSpeed;
     this.wheelB.rotation.x += animSpeed;
-    this.pedalAngle += animSpeed * 2.5;
+    this.pedalAngle += animSpeed * 2;
     this.pedals.rotation.x = this.pedalAngle;
     this.legL.rotation.x = Math.sin(this.pedalAngle) * 0.5;
     this.legR.rotation.x = Math.sin(this.pedalAngle + Math.PI) * 0.5;
 
     const speedEl = document.getElementById('speed');
-    if (speedEl) speedEl.innerText = Math.round(this.speed * 2000);
+    if (speedEl) speedEl.innerText = Math.round(this.speed * 1000);
   }
 }
