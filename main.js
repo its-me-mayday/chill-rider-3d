@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { setupWorld } from './world.js';
-import { Bicycle } from './bicycle.js';
+import { Car } from './car.js'; // Rinominato internamente a Car
 
 // 1. SCENE SETUP
 const scene = new THREE.Scene();
@@ -21,7 +21,7 @@ composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window
 
 // 2. GAME OBJECTS
 const world = setupWorld(scene);
-const bike = new Bicycle(scene, world.curve);
+const bike = new Car(scene, world.curve);
 
 // 3. LOFI SYNTHESIZER
 let audioCtx = null;
